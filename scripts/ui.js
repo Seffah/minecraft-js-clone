@@ -1,4 +1,5 @@
 import GUI from 'lil-gui'
+import { resources } from './blocks'
 
 export function createUI(world) {
     const gui = new GUI
@@ -12,6 +13,17 @@ export function createUI(world) {
     terrainFolder.add(world.params.terrain, 'magnitude', 0, 1).name('Magnitude')
     terrainFolder.add(world.params.terrain, 'offset', 0, 1).name('Offset')
 
+    resources.forEach(resource => {
+        const resourcesFolder = gui.addFolder(resource.name)
+        resourcesFolder.add(resource, 'scarcity', 0, 1).name('Scarcity')
+
+        const scaleFolder = resourcesFolder.addFolder('Scale')
+        scaleFolder.add(resource.scale, 'x', 10, 100).name('X Scale')
+        scaleFolder.add(resource.scale, 'y', 10, 100).name('Y Scale')
+        scaleFolder.add(resource.scale, 'z', 10, 100).name('Z Scale')
+
+    })
+    
     gui.onChange(() => {
         world.generate()
     })
