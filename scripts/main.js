@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons'
 import { World } from './world'
 import Stats from 'three/examples/jsm/libs/stats.module.js'
 import { createUI } from './ui'
+import { Player } from './player'
 
 // FPS checker
 const stats = new Stats()
@@ -14,15 +15,15 @@ renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setClearColor(0x80a0e0)
 renderer.shadowMap.enabled = true
-renderer.shadowMap.type = THREE.PCFSoftShadowMap
+renderer.shadowMap.type = THREE.PCFShadowMap
 document.body.appendChild(renderer.domElement)
 
 //Camera setup
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight)
-camera.position.set(-32, 16, -32)
-camera.lookAt(0, 0, 0)
+const orbitCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight)
+orbitCamera.position.set(-32, 16, -32)
+orbitCamera.lookAt(0, 0, 0)
 
-const controls = new OrbitControls(camera, renderer.domElement)
+const controls = new OrbitControls(orbitCamera, renderer.domElement)
 controls.target.set(16, 0, 16)
 controls.update()
 
@@ -31,6 +32,9 @@ const scene = new THREE.Scene()
 const world = new World()
 world.generate()
 scene.add(world)
+
+// create player
+const player = new Player(scene)
 
 function setupLights() {
     const sun = new THREE.DirectionalLight()
@@ -47,7 +51,7 @@ function setupLights() {
     scene.add(sun)
 
     const shadowHelper = new THREE.CameraHelper(sun.shadow.camera)
-    scene.add(shadowHelper)
+    //scene.add(shadowHelper)
 
 
     const ambientLight = new THREE.AmbientLight()
@@ -58,19 +62,31 @@ function setupLights() {
 
 
 // Render Loop
+let previousTime = performance.now()
 function animate() {
     requestAnimationFrame(animate)
-    renderer.render(scene, camera)
+
+    const currentTime = performance.now()
+    const dt = (currentTime - previousTime) / 1000
+
+    player.update(dt)
+    
+    renderer.render(scene, player.controls.isLocked ? player.camera : orbitCamera)
     stats.update()
+
+    previousTime = currentTime
 }
 
 window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight
-    camera.updateProjectionMatrix()
+    orbitCamera.aspect = window.innerWidth / window.innerHeight
+    orbitCamera.updateProjectionMatrix()
+
+    player.camera.aspect = window.innerWidth / window.innerHeight
+    player.camera.updateProjectionMatrix()
     renderer.setSize(window.innerWidth, window.innerHeight)
 })
 
 
 setupLights()
-createUI(world)
+createUI(world, player)
 animate()
