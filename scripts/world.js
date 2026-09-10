@@ -22,7 +22,6 @@ export class World extends THREE.Group {
             magnitude: 0.5,
             offset: 0.2
         },
-
     }
 
     constructor(size = { width: 64, height: 32 }) {
@@ -60,7 +59,6 @@ export class World extends THREE.Group {
                 slice.push(row)
             }
             this.data.push(slice)
-
         }
         console.log(this.data)
     }
@@ -169,7 +167,7 @@ export class World extends THREE.Group {
 
                     if (!this.isBlockObscured(x, y, z)) {
 
-                        matrix.setPosition(x + 0.5, y + 0.5, z + 0.5)
+                        matrix.setPosition(x, y, z)
                         mesh.setMatrixAt(instanceId, matrix)
                         this.setBlockInstanceId(x, y, z, instanceId)
                         mesh.count++

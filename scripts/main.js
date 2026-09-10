@@ -4,6 +4,7 @@ import { World } from './world'
 import Stats from 'three/examples/jsm/libs/stats.module.js'
 import { createUI } from './ui'
 import { Player } from './player'
+import { Physics } from './physics'
 
 // FPS checker
 const stats = new Stats()
@@ -35,6 +36,8 @@ scene.add(world)
 
 // create player
 const player = new Player(scene)
+
+const physics = new Physics(scene)
 
 function setupLights() {
     const sun = new THREE.DirectionalLight()
@@ -69,8 +72,7 @@ function animate() {
     const currentTime = performance.now()
     const dt = (currentTime - previousTime) / 1000
 
-    player.update(dt)
-    
+    physics.update(dt, player, world)
     renderer.render(scene, player.controls.isLocked ? player.camera : orbitCamera)
     stats.update()
 

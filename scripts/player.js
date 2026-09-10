@@ -3,14 +3,21 @@ import { PointerLockControls } from 'three/examples/jsm/Addons.js'
 
 
 export class Player {
+    radius = 0.5
+    height = 1.75
+    
 
-    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100)
-    controls = new PointerLockControls(this.camera, document.body)
-    cameraHelper = new THREE.CameraHelper(this.camera)
+    jumpSpeed = 10
+    onGround = false
 
     maxSpeed = 10
     velocity = new THREE.Vector3()
     input = new THREE.Vector3()
+    #worldVelocity = new THREE.Vector3()
+
+    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100)
+    controls = new PointerLockControls(this.camera, document.body)
+    cameraHelper = new THREE.CameraHelper(this.camera)
 
 
     constructor(scene) {
@@ -20,19 +27,46 @@ export class Player {
         
         document.addEventListener('keydown', (e) => this.onKeyDown(e))
         document.addEventListener('keyup', (e) => this.onKeyUp(e))
+
+        this.boundsHelper = new THREE.Mesh(
+            new THREE.CylinderGeometry(this.radius, this.radius, this.height, 16),
+            new THREE.MeshBasicMaterial({ wireframe: true })
+        )
+
+        scene.add(this.boundsHelper)
     }
 
+
+    /**
+     * Returns the velocity of the player in world coordinates
+     * @returns {THREE.Vector3}
+     */
+    get worldVelocity() {
+        this.#worldVelocity.copy(this.velocity)
+        this.#worldVelocity.applyEuler(new THREE.Euler(0, this.camera.rotation.y, 0))
+        return this.#worldVelocity
+    }
+
+    /**
+     * Updates the state of the player based on the current user inputs
+     * @param {Number} dt 
+     */
     update(dt) {
         if (this.controls.isLocked) {
             this.velocity.x = this.input.x
             this.velocity.z = this.input.z
             this.controls.moveRight(this.velocity.x * dt)
             this.controls.moveForward(this.velocity.z * dt)
+            this.position.y += this.velocity.y * dt
         }
 
         document.getElementById('player_position').innerHTML = this.toString()
     }
 
+    /**
+     * Event handler for 'keyup' event
+     * @param {KeyboardEvent} event 
+     */
     onKeyDown(event) {
         if (!this.controls.isLocked) {
             this.controls.lock()
@@ -59,6 +93,10 @@ export class Player {
                 this.position.set(32, 16, 32)
                 this.velocity.set(0, 0, 0)
                 break
+            case 'Space':
+                if (this.onGround) {
+                    this.velocity.y += this.jumpSpeed
+                }
         
             default:
                 break;
@@ -66,6 +104,11 @@ export class Player {
         
     }
 
+
+    /**
+     * Event handler for 'keyup' event
+     * @param {KeyboardEvent} event 
+     */
     onKeyUp(event) {
         switch (event.code) {
             case 'KeyW':
@@ -89,6 +132,29 @@ export class Player {
         }
     }
 
+
+    /**
+     * Applies a change in velocity 'dv' that is specified in the world frame
+     * @param {THREE.Vector3} dv 
+     */
+    applyWorldDeltaVelocity(dv) {
+        dv.applyEuler(new THREE.Euler(0, -this.camera.rotation.y, 0))
+        this.velocity.add(dv)
+    }
+
+    /**
+     * Updates the position of the player's bounding cylinder helper
+     */
+    updateBoundsHelper() {
+        this.boundsHelper.position.copy(this.position)
+        this.boundsHelper.position.y -= this.height / 2
+    }
+
+
+    /**
+     * Returns the current world position of the player
+     * @returns {THREE.Vector3}
+     */
     get position() {
         return this.camera.position
     }
