@@ -18,12 +18,14 @@ export class Player {
     camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100)
     controls = new PointerLockControls(this.camera, document.body)
     cameraHelper = new THREE.CameraHelper(this.camera)
+    
 
 
     constructor(scene) {
         this.position.set(32, 16, 32)
         scene.add(this.camera)
         scene.add(this.cameraHelper)
+        this.cameraHelper.visible = false
         
         document.addEventListener('keydown', (e) => this.onKeyDown(e))
         document.addEventListener('keyup', (e) => this.onKeyUp(e))
