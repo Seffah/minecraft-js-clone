@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { WorldChunk } from "./worldChunk"
+import { DataStore } from './dataStore';
 
 export class World extends THREE.Group {
 
@@ -23,7 +24,7 @@ export class World extends THREE.Group {
     /**
      * Width and height of a single chunk of terrain
      */
-    chunkSize = { width: 32, height: 32 }
+    chunkSize = { width: 8, height: 8 }
 
     /**
      * The number of chunks to render around the player.
@@ -34,6 +35,8 @@ export class World extends THREE.Group {
      */
     drawDistance = 1
 
+    dataStore = new DataStore()
+
     constructor(seed = 0) {
         super()
         this.seed = seed
@@ -41,15 +44,16 @@ export class World extends THREE.Group {
     }
 
     generate() {
+        this.dataStore.clear()
         this.disposeChunks()
 
         for (let x = -1; x <= 1; x++) {
             for (let z = -1; z <= 1; z++) {
-                const chunk = new WorldChunk(this.chunkSize, this.params)
+                const chunk = new WorldChunk(this.chunkSize, this.params, this.dataStore)
                 chunk.position.set(
-                    x * this.chunkSize.width * 1.01,
+                    x * this.chunkSize.width * 1,
                     0,
-                    z * this.chunkSize.width * 1.01
+                    z * this.chunkSize.width * 1
                 )
                 chunk.userData = { x, z }
 
@@ -75,8 +79,8 @@ export class World extends THREE.Group {
 
         for (const chunk of chunkToAdd) {
             this.generateChunk(chunk.x, chunk.z)
-            console.log(`Adding chunk at X: ${chunk.x} Z: ${chunk.z}`)
-            console.log(this.children.length)
+            // console.log(`Adding chunk at X: ${chunk.x} Z: ${chunk.z}`)
+            // console.log(this.children.length)
         }
 
     }
@@ -148,8 +152,8 @@ export class World extends THREE.Group {
             //console.log(chunk)
             chunk.disposeInstances()
             this.remove(chunk)
-            console.log(`Removing Chunk X:${chunk.userData.x} Z:${chunk.userData.z}`)
-            console.log(this.children.length)
+            // console.log(`Removing Chunk X:${chunk.userData.x} Z:${chunk.userData.z}`)
+            // console.log(this.children.length)
         }
     }
 
@@ -159,11 +163,11 @@ export class World extends THREE.Group {
      * @param {number} z
      */
     generateChunk(x, z) {
-        const chunk = new WorldChunk(this.chunkSize, this.params)
+        const chunk = new WorldChunk(this.chunkSize, this.params, this.dataStore)
         chunk.position.set(
-            x * this.chunkSize.width * 1.01,
+            x * this.chunkSize.width * 1,
             0,
-            z * this.chunkSize.width * 1.01
+            z * this.chunkSize.width * 1
         )
         chunk.userData = { x, z }
 
@@ -258,4 +262,101 @@ export class World extends THREE.Group {
         this.clear()
     }
 
+    /**
+     * Adds a new block at (x,y,z)
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} z 
+     * @param {number} blockId 
+     */
+    addBlock(x, y, z, blockId) {
+        const coords = this.worldToChunkCoords(x, y, z)
+        const chunk = this.getChunk(coords.chunk.x, coords.chunk.z)
+        
+        if (chunk) {
+            // console.log(chunk)
+            chunk.addBlock(
+                coords.block.x,
+                coords.block.y,
+                coords.block.z,
+                blockId
+            )
+
+            this.hideBlock(x - 1, y, z)
+            this.hideBlock(x + 1, y, z)
+            this.hideBlock(x, y - 1, z)
+            this.hideBlock(x, y + 1, z)
+            this.hideBlock(x, y, z - 1)
+            this.hideBlock(x, y, z + 1)
+
+        }
+    }
+
+    /**
+     * Removes the block at (x, y, z) and sets it to empty
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} z 
+     */
+    removeBlock(x, y, z) {
+        const coords = this.worldToChunkCoords(x, y, z)
+        const chunk = this.getChunk(coords.chunk.x, coords.chunk.z)
+        
+        if (chunk) {
+            // console.log(chunk)
+            chunk.removeBlock(
+                coords.block.x,
+                coords.block.y,
+                coords.block.z,
+            )
+
+            this.revealBlock(x - 1, y, z)
+            this.revealBlock(x + 1, y, z)
+            this.revealBlock(x, y - 1, z)
+            this.revealBlock(x, y + 1, z)
+            this.revealBlock(x, y, z - 1)
+            this.revealBlock(x, y, z + 1)
+        }
+    }
+
+    /**
+     * Reveals the block at (x,y,z) by adding a new mesh instance
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} z 
+     */
+    revealBlock(x, y, z) {
+        const coords = this.worldToChunkCoords(x, y, z)
+        const chunk = this.getChunk(coords.chunk.x, coords.chunk.z)
+
+        if (chunk) {
+            // console.log(chunk)
+            chunk.addBlockInstance(
+                coords.block.x,
+                coords.block.y,
+                coords.block.z,
+            )
+        }
+    }
+
+    /**
+     * Hides the block at (x,y,z) by removing the  new mesh instance
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} z 
+     */
+    hideBlock(x, y, z) {
+        const coords = this.worldToChunkCoords(x, y, z)
+        const chunk = this.getChunk(coords.chunk.x, coords.chunk.z)
+        //console.log(coords.block)
+
+        if (chunk && chunk.isBlockObscured(coords.block.x, coords.block.y, coords.block.z)) {
+            console.log(`obsure block at X:${coords.block.x} Y:${coords.block.y} Z:${coords.block.z}`)
+            chunk.deleteBlockInstance(
+                coords.block.x,
+                coords.block.y,
+                coords.block.z,
+            )
+        }
+    }
 }

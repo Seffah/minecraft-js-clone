@@ -5,6 +5,7 @@ import Stats from 'three/examples/jsm/libs/stats.module.js'
 import { createUI } from './ui'
 import { Player } from './player'
 import { Physics } from './physics'
+import { blocks } from './blocks'
 
 // FPS checker
 const stats = new Stats()
@@ -43,7 +44,7 @@ const physics = new Physics(scene)
 const sun = new THREE.DirectionalLight()
 
 function setupLights() {
-    
+
     sun.position.set(50, 50, 50)
     sun.castShadow = true
     sun.shadow.camera.left = -100
@@ -67,6 +68,29 @@ function setupLights() {
 }
 
 
+function onMouseDown(event) {
+    if (player.controls.isLocked && player.selectedCoords) {
+        if (player.activeBlockId === blocks.empty.id) {
+            console.log(`removing block at ${JSON.stringify(player.selectedCoords)}`)
+            world.removeBlock(
+                player.selectedCoords.x,
+                player.selectedCoords.y,
+                player.selectedCoords.z,
+            )
+        } else {
+            console.log(`add block at ${JSON.stringify(player.selectedCoords)}`)
+            world.addBlock(
+                player.selectedCoords.x,
+                player.selectedCoords.y,
+                player.selectedCoords.z,
+                player.activeBlockId
+            )
+        }
+    }
+}
+
+document.addEventListener('mousedown', onMouseDown)
+
 
 // Render Loop
 let previousTime = performance.now()
@@ -77,6 +101,7 @@ function animate() {
     const dt = (currentTime - previousTime) / 1000
 
     if (player.controls.isLocked) {
+        player.update(world)
         physics.update(dt, player, world)
         world.update(player)
 
@@ -84,7 +109,7 @@ function animate() {
         sun.position.add(new THREE.Vector3(50, 50, 50))
         sun.target.position.copy(player.position)
     }
-   
+
     renderer.render(scene, player.controls.isLocked ? player.camera : orbitCamera)
     stats.update()
 

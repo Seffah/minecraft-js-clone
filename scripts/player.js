@@ -1,6 +1,8 @@
 import * as THREE from 'three'
 import { PointerLockControls } from 'three/examples/jsm/Addons.js'
+import { blocks } from './blocks'
 
+const CENTER_SCREEN = new THREE.Vector2()
 
 export class Player {
     radius = 0.5
@@ -19,6 +21,10 @@ export class Player {
     controls = new PointerLockControls(this.camera, document.body)
     cameraHelper = new THREE.CameraHelper(this.camera)
     
+    raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(), 0, 3)
+    selectedCoords = null
+
+    activeBlockId = blocks.grass.id
 
 
     constructor(scene) {
@@ -34,8 +40,16 @@ export class Player {
             new THREE.CylinderGeometry(this.radius, this.radius, this.height, 16),
             new THREE.MeshBasicMaterial({ wireframe: true })
         )
+        // scene.add(this.boundsHelper)
 
-        scene.add(this.boundsHelper)
+        const selectionMaterial = new THREE.MeshBasicMaterial({
+            transparent: true,
+            opacity: 0.3,
+            color: 0xffffaa
+        }) 
+        const selectionGeometry = new THREE.BoxGeometry(1.01, 1.01, 1.01)
+        this.selectionHelper = new THREE.Mesh(selectionGeometry, selectionMaterial)
+        scene.add(this.selectionHelper)
     }
 
 
@@ -49,11 +63,51 @@ export class Player {
         return this.#worldVelocity
     }
 
+    update(world) {
+        this.updateRayCaster(world)
+    }
+
+    updateRayCaster(world) {
+        this.raycaster.setFromCamera(CENTER_SCREEN, this.camera)
+        const intersections = this.raycaster.intersectObject(world, true)
+
+        if (intersections.length > 0) {
+            const intersection = intersections[0]
+
+            // Get the position of the chunk that the block is contained in
+            const chunk = intersection.object.parent
+
+            // Get transformation matrix of the intersected block
+            const blockMatrix = new THREE.Matrix4()
+            intersection.object.getMatrixAt(intersection.instanceId, blockMatrix)
+
+            // Extract the position from the block's transformations matrix
+            // and store it in the selectedCoords
+            this.selectedCoords = chunk.position.clone()
+            this.selectedCoords.applyMatrix4(blockMatrix)
+
+            // if we are adding a world, move the selection indicator to the block very nearest adjacent block
+            if (this.activeBlockId !== blocks.empty.id) {
+                this.selectedCoords.add(intersection.normal)
+            }
+
+            this.selectionHelper.position.copy(this.selectedCoords)
+            this.selectionHelper.visible = true
+
+            // console.log(this.selectedCoords)
+        } else {
+            this.selectedCoords = null
+            this.selectionHelper.visible = false
+        }
+
+
+    }
+
     /**
      * Updates the state of the player based on the current user inputs
      * @param {Number} dt 
      */
-    update(dt) {
+    applyInputs(dt) {
         if (this.controls.isLocked) {
             this.velocity.x = this.input.x
             this.velocity.z = this.input.z
@@ -75,6 +129,13 @@ export class Player {
         }
 
         switch (event.code) {
+            case 'Digit0':
+            case 'Digit1':
+            case 'Digit2':
+            case 'Digit3':
+            case 'Digit4':
+            case 'Digit5':
+                this.activeBlockId = Number(event.key)
             case 'KeyW':
                 this.input.z = this.maxSpeed
                 break;

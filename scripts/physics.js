@@ -27,7 +27,7 @@ export class Physics {
 
     constructor(scene) {
         this.helpers = new THREE.Group()
-        scene.add(this.helpers)
+        // scene.add(this.helpers)
     }
 
     /**
@@ -43,7 +43,7 @@ export class Physics {
 
         while (this.accumulator >= this.stepSize) {
             player.velocity.y -= this.gravity * this.stepSize
-            player.update(this.stepSize)
+            player.applyInputs(this.stepSize)
 
             this.detectCollisions(player, world)
 
