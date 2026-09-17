@@ -16,15 +16,32 @@ export class World extends THREE.Group {
         seed: 0,
         terrain: {
             scale: 30,
-            magnitude: 0.5,
-            offset: 0.2
+            magnitude: 10,
+            offset: 4,
+            waterOffset: 5,
         },
+        trees: {
+            trunk: {
+                minHeight: 4,
+                maxHeight: 7
+            },
+            canopy: {
+                minRadius: 2,
+                maxRadius: 4,
+                density: 0.5, // Vary between 0 and 1
+            },
+            frequency: 0.01
+        },
+        clouds: {
+            scale: 30,
+            density: 0.5
+        }
     }
 
     /**
      * Width and height of a single chunk of terrain
      */
-    chunkSize = { width: 8, height: 8 }
+    chunkSize = { width: 32, height: 32 }
 
     /**
      * The number of chunks to render around the player.

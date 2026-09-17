@@ -22,6 +22,7 @@ export class Player {
     cameraHelper = new THREE.CameraHelper(this.camera)
     
     raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(), 0, 3)
+
     selectedCoords = null
 
     activeBlockId = blocks.grass.id
@@ -29,7 +30,9 @@ export class Player {
 
     constructor(scene) {
         this.position.set(32, 16, 32)
+        this.camera.layers.enable(1)
         scene.add(this.camera)
+
         scene.add(this.cameraHelper)
         this.cameraHelper.visible = false
         
@@ -50,6 +53,8 @@ export class Player {
         const selectionGeometry = new THREE.BoxGeometry(1.01, 1.01, 1.01)
         this.selectionHelper = new THREE.Mesh(selectionGeometry, selectionMaterial)
         scene.add(this.selectionHelper)
+
+        this.raycaster.layers.set(0)
     }
 
 
@@ -135,6 +140,10 @@ export class Player {
             case 'Digit3':
             case 'Digit4':
             case 'Digit5':
+            case 'Digit6':
+            case 'Digit7':
+            case 'Digit8':
+            case 'Digit9':
                 this.activeBlockId = Number(event.key)
             case 'KeyW':
                 this.input.z = this.maxSpeed
@@ -156,6 +165,7 @@ export class Player {
                 this.position.set(32, 16, 32)
                 this.velocity.set(0, 0, 0)
                 break
+            
             case 'Space':
                 if (this.onGround) {
                     this.velocity.y += this.jumpSpeed

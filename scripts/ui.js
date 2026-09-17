@@ -11,17 +11,19 @@ export function createUI(scene, world, player) {
     playerFolder.add(player, 'maxSpeed', 1, 20).name('Max Speed')
     playerFolder.add(player.cameraHelper, 'visible').name('Show Camera Helper')
     const terrainFolder = gui.addFolder('Terrain')
+    
     // terrainFolder.add(world.chunkSize, 'width', 8, 128, 1).name('Width')
     // terrainFolder.add(world.chunkSize, 'height', 8, 64, 1).name('Height')
     terrainFolder.add(world, 'drawDistance', 0, 5, 1).name('Draw Distance')
     terrainFolder.add(world, 'asyncLoading').name('Async Load Chunk')
     terrainFolder.add(world.params, 'seed', 1, 10000).name('Seed')
     terrainFolder.add(world.params.terrain, 'scale', 10, 100).name('Scale')
-    terrainFolder.add(world.params.terrain, 'magnitude', 0, 1).name('Magnitude')
-    terrainFolder.add(world.params.terrain, 'offset', 0, 1).name('Offset')
+    terrainFolder.add(world.params.terrain, 'magnitude', 0, 32, 1).name('Magnitude')
+    terrainFolder.add(world.params.terrain, 'offset', 0, 32, 1).name('Offset')
+    terrainFolder.add(world.params.terrain, 'waterOffset', 0, 32, 1).name('Water Offset')
 
     resources.forEach(resource => {
-        const resourcesFolder = gui.addFolder(resource.name)
+        const resourcesFolder = terrainFolder.addFolder(resource.name)
         resourcesFolder.add(resource, 'scarcity', 0, 1).name('Scarcity')
 
         const scaleFolder = resourcesFolder.addFolder('Scale')
@@ -30,7 +32,20 @@ export function createUI(scene, world, player) {
         scaleFolder.add(resource.scale, 'z', 10, 100).name('Z Scale')
 
     })
-    
+
+    const treesFolder = terrainFolder.addFolder('Trees').close()
+    terrainFolder.add(world.params.trees, 'frequency', 0, 0.1).name('Frequency')
+    terrainFolder.add(world.params.trees.trunk, 'minHeight', 0, 10, 1).name('Min Trunk Height')
+    terrainFolder.add(world.params.trees.trunk, 'maxHeight', 0, 10, 1).name('Max trunk Height')
+    terrainFolder.add(world.params.trees.canopy, 'minRadius', 0, 10, 1).name('Min Canopy Size')
+    terrainFolder.add(world.params.trees.canopy, 'maxRadius', 0, 10, 1).name('Max Canopy Size')
+    terrainFolder.add(world.params.trees.canopy, 'density', 0, 1).name('Canopy Density')
+
+    const cloudsFolder = terrainFolder.addFolder('Clouds').close()
+    cloudsFolder.add(world.params.clouds, 'scale', 0, 100).name('Cloud Size')
+    cloudsFolder.add(world.params.clouds, 'density', 0, 1).name('Cloud Cover')    
+
+    terrainFolder.close()
     gui.onChange(() => {
         world.generate()
     })
