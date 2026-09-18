@@ -47,6 +47,6 @@ export function createUI(scene, world, player) {
 
     terrainFolder.close()
     gui.onChange(() => {
-        world.generate()
+        world.generate(true)
     })
 }

@@ -399,7 +399,7 @@ export class WorldChunk extends THREE.Group {
 
         // verify if block exists and is not empty then reveal the block
         if (block && block.id !== blocks.empty.id && block.instanceId === null) {
-            console.log(block.id)
+            // console.log(block.id)
 
             // Get the instancedMesh and instanceid of the block to be added
             const mesh = this.children.find((instanceMesh) => instanceMesh.name === block.id)

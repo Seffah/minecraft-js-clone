@@ -58,10 +58,50 @@ export class World extends THREE.Group {
         super()
         this.seed = seed
 
+        document.addEventListener('keydown', (e) => {
+            switch (e.code) {
+                case 'F1':
+                    this.save()
+                    break;
+
+                case 'F2':
+                    this.load()
+                    break;
+            
+                default:
+                    break;
+            }
+        })
     }
 
-    generate() {
-        this.dataStore.clear()
+    /**
+     * Saves the world to local storage
+     */
+
+    save() {
+        localStorage.setItem('minecraft_params', JSON.stringify(this.params))
+        localStorage.setItem('minecraft_data', JSON.stringify(this.dataStore.data))
+        document.getElementById('status').innerHTML = "GAME SAVED"
+        setTimeout(() => document.getElementById('status').innerHTML = "", 3000)
+    }
+
+    /**
+     * Loads the game from disk
+     */
+    load() {
+        this.params = JSON.parse(localStorage.getItem('minecraft_params'))
+        this.dataStore.data = JSON.parse(localStorage.getItem('minecraft_data'))
+        document.getElementById('status').innerHTML = "GAME LOADED"
+        setTimeout(() => document.getElementById('status').innerHTML = "", 3000)
+        this.generate()
+    }
+
+    generate(clearCache = false) {
+        // this.dataStore.clear()
+        if (clearCache) {
+            this.dataStore.clear()
+        } 
+
         this.disposeChunks()
 
         for (let x = -1; x <= 1; x++) {
