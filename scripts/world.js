@@ -15,10 +15,21 @@ export class World extends THREE.Group {
     params = {
         seed: 0,
         terrain: {
-            scale: 30,
+            scale: 80,
             magnitude: 10,
-            offset: 4,
-            waterOffset: 5,
+            offset: 5,
+            waterOffset: 3,
+        },
+        biomes: {
+            scale: 200,
+            variation: {
+                amplitude: 0.2,
+                scale: 50,
+            },
+            tundraToTemperate: 0.1,
+            temperateToJungle: 0.5,
+            jungleToDesert: 0.9,
+            
         },
         trees: {
             trunk: {
@@ -34,7 +45,7 @@ export class World extends THREE.Group {
         },
         clouds: {
             scale: 30,
-            density: 0.5
+            density: 0
         }
     }
 
@@ -50,7 +61,7 @@ export class World extends THREE.Group {
      * the adjacent chunks are rendered; if set to 2, the
      * chunks adjacent to those are rendered, and so on.
      */
-    drawDistance = 1
+    drawDistance = 2
 
     dataStore = new DataStore()
 

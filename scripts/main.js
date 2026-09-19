@@ -33,7 +33,7 @@ controls.update()
 
 // Scene setup
 const scene = new THREE.Scene()
-scene.fog = new THREE.Fog(0x80a0e0, 50, 100)
+scene.fog = new THREE.Fog(0x80a0e0, 500, 1000)
 
 
 const world = new World()
@@ -53,7 +53,7 @@ const physics = new Physics(scene)
 const sun = new THREE.DirectionalLight()
 
 function setupLights() {
-
+    sun.intensity = 3
     sun.position.set(50, 50, 50)
     sun.castShadow = true
     sun.shadow.camera.left = -100
@@ -62,7 +62,7 @@ function setupLights() {
     sun.shadow.camera.top = 100
     sun.shadow.camera.near = 0.1
     sun.shadow.camera.far = 200
-    sun.shadow.bias = -0.0001
+    sun.shadow.bias = -0.0005
     sun.shadow.mapSize = new THREE.Vector2(1024, 1024)
     scene.add(sun)
     scene.add(sun.target)
